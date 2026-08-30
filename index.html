@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web 2 - Receiver / TV Display</title>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        #remote-video { width: 100%; height: 100%; object-fit: contain; }
+        .control-box { position: absolute; top: 20px; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 8px; color: white; font-family: sans-serif; }
+        input { padding: 10px; font-size: 16px; width: 250px; }
+        button { padding: 10px 20px; font-size: 16px; background: #27ae60; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="control-box" id="controlPanel">
+        <h3>Hubungkan ke Layar</h3>
+        <input type="text" id="target-id" placeholder="Masukkan ID Web 1 Disini">
+        <button id="connect-btn">Tampilkan ke TV</button>
+    </div>
+
+    <video id="remote-video" autoplay playsinline></video>
+
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script>
+        const peer = new Peer();
+
+        document.getElementById('connect-btn').addEventListener('click', () => {
+            const targetId = document.getElementById('target-id').value.trim();
+            if (!targetId) {
+                alert('Masukkan ID Web 1 terlebih dahulu!');
+                return;
+            }
+
+            // Hubungkan ke Web 1 dengan kosongkan stream awal, lalu terima stream masuk
+            const call = peer.call(targetId, new MediaStream());
+
+            call.on('stream', (remoteStream) => {
+                const videoElement = document.getElementById('remote-video');
+                videoElement.srcObject = remoteStream;
+                
+                // Sembunyikan kotak input agar tampilan bersih seperti 
+                document.getElementById('controlPanel').style.display = 'none';
+            });
+
+            call.on('error', (err) => {
+                console.err(err);
+                alert('Gagal terhubung ke perangkat pengirim.');
+            });
+        });
+    </script>
+</body>
+</html>
