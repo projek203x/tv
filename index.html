@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Prediktor Spaceman</title>
+    <title>Pencatat & Prediktor Spaceman</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
@@ -12,51 +12,154 @@
             padding: 20px;
             text-align: center;
         }
-        input, button {
+        h1, h2 {
+            color: #00ffcc;
+        }
+        input, button, textarea {
             padding: 10px;
-            margin: 10px 0;
+            margin: 5px 0;
             font-size: 1em;
             width: 100%;
             max-width: 400px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            border: none;
+        }
+        input, textarea {
+            background-color: #1a1a3d;
+            color: #fff;
+        }
+        button {
+            background-color: #00ffcc;
+            color: #0d0d2b;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover {
+            background-color: #00ccaa;
+        }
+        button.danger {
+            background-color: #ff4d4d;
+            color: #fff;
+        }
+        button.danger:hover {
+            background-color: #cc0000;
         }
         .output {
             margin-top: 20px;
             font-size: 1.2em;
             color: #00ffcc;
-        }
-        textarea {
-            width: 100%;
+            padding: 10px;
+            background-color: #1a1a3d;
+            border-radius: 6px;
             max-width: 400px;
-            height: 100px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .riwayat-box {
+            max-width: 400px;
+            margin: 10px auto;
+            background-color: #1a1a3d;
+            border-radius: 6px;
+            padding: 10px;
+            min-height: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+        }
+        .riwayat-item {
+            background-color: #00ffcc;
+            color: #0d0d2b;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .statistik {
+            font-size: 0.95em;
+            color: #aaa;
+            margin-top: 8px;
         }
     </style>
 </head>
 <body>
-    <h1>🎯 Prediktor Spaceman</h1>
-    <p>Masukkan hasil crash sebelumnya (pisahkan dengan koma):</p>
-    <textarea id="inputData" placeholder="Contoh: 1.2, 1.5, 2.3, 1.1, 5.0"></textarea>
-    <br>
-    <button onclick="prediksi()">🔮 Prediksi</button>
+    <h1>🎯 Pencatat & Prediktor Spaceman</h1>
 
-    <div class="output" id="hasilPrediksi"></div>
+    <h2>📝 Catat Hasil Crash</h2>
+    <input type="number" id="inputCrash" placeholder="Contoh: 1.25" step="0.01">
+    <button onclick="tambahCrash()">➕ Tambah ke Riwayat</button>
+
+    <h2>📊 Riwayat Crash</h2>
+    <div class="riwayat-box" id="riwayatBox">
+        <span style="color:#666;">Belum ada data...</span>
+    </div>
+    <div class="statistik" id="statistik"></div>
+
+    <button onclick="kirimKePrediksi()">🔮 Kirim ke Prediktor</button>
+    <button class="danger" onclick="hapusRiwayat()">🗑️ Hapus Riwayat</button>
+
+    <h2>🔮 Hasil Prediksi</h2>
+    <div class="output" id="hasilPrediksi">Menunggu data...</div>
 
     <script>
-        function prediksi() {
-            const input = document.getElementById("inputData").value;
-            const data = input.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+        // Ambil riwayat dari localStorage
+        let riwayat = JSON.parse(localStorage.getItem("riwayatCrash")) || [];
 
-            if (data.length < 3) {
+        // Render riwayat saat halaman dibuka
+        renderRiwayat();
+
+        function tambahCrash() {
+            const input = document.getElementById("inputCrash");
+            const nilai = parseFloat(input.value);
+
+            if (isNaN(nilai) || nilai <= 0) {
+                alert("Masukkan angka valid (contoh: 1.25)");
+                return;
+            }
+
+            riwayat.push(nilai);
+            localStorage.setItem("riwayatCrash", JSON.stringify(riwayat));
+            input.value = "";
+            input.focus();
+            renderRiwayat();
+        }
+
+        function renderRiwayat() {
+            const box = document.getElementById("riwayatBox");
+            const stat = document.getElementById("statistik");
+
+            if (riwayat.length === 0) {
+                box.innerHTML = '<span style="color:#666;">Belum ada data...</span>';
+                stat.innerText = "";
+                return;
+            }
+
+            box.innerHTML = riwayat
+                .map((v, i) => `<span class="riwayat-item">#${i + 1}: ${v.toFixed(2)}x</span>`)
+                .join("");
+
+            const rata = riwayat.reduce((a, b) => a + b, 0) / riwayat.length;
+            const max = Math.max(...riwayat);
+            const min = Math.min(...riwayat);
+
+            stat.innerText = `Total: ${riwayat.length} | Rata-rata: ${rata.toFixed(2)}x | Tertinggi: ${max.toFixed(2)}x | Terendah: ${min.toFixed(2)}x`;
+        }
+
+        function kirimKePrediksi() {
+            if (riwayat.length < 3) {
                 document.getElementById("hasilPrediksi").innerText = "Minimal 3 data diperlukan untuk prediksi.";
                 return;
             }
 
+            const data = riwayat;
             const rataRata = data.reduce((a, b) => a + b) / data.length;
             const prediksi = (rataRata + data[data.length - 1]) / 2;
 
             let rekomendasi = "";
-
             if (prediksi > 2.0) {
-                rekomendasi = "🚀 Potensi Terbang Tinggi - Pertimbangkan untuk..."; // Teks terpotong di gambar
+                rekomendasi = "🚀 Potensi Terbang Tinggi - Pertimbangkan untuk main.";
             } else if (prediksi > 1.5) {
                 rekomendasi = "⚖️ Stabil - Main aman dan tarik cepat.";
             } else {
@@ -66,8 +169,24 @@
             document.getElementById("hasilPrediksi").innerHTML = `
                 <strong>Prediksi Crash Selanjutnya:</strong> ${prediksi.toFixed(2)}x<br><br>
                 ${rekomendasi}
+                <div style="font-size:0.75em;color:#888;margin-top:10px;">
+                    *Hasil ini hanya estimasi statistik, bukan jaminan.
+                </div>
             `;
         }
+
+        function hapusRiwayat() {
+            if (!confirm("Yakin ingin menghapus semua riwayat?")) return;
+            riwayat = [];
+            localStorage.removeItem("riwayatCrash");
+            renderRiwayat();
+            document.getElementById("hasilPrediksi").innerText = "Menunggu data...";
+        }
+
+        // Bonus: tekan Enter untuk langsung tambah
+        document.getElementById("inputCrash").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") tambahCrash();
+        });
     </script>
 </body>
 </html>
