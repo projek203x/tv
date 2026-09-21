@@ -2,53 +2,72 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <title>Prediktor Spaceman</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web 2 - Receiver / TV Display</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-        #remote-video { width: 100%; height: 100%; object-fit: contain; }
-        .control-box { position: absolute; top: 20px; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 8px; color: white; font-family: sans-serif; }
-        input { padding: 10px; font-size: 16px; width: 250px; }
-        button { padding: 10px 20px; font-size: 16px; background: #27ae60; color: white; border: none; cursor: pointer; }
+        body {
+            font-family: sans-serif;
+            background-color: #0d0d2b;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 1em;
+            width: 100%;
+            max-width: 400px;
+        }
+        .output {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #00ffcc;
+        }
+        textarea {
+            width: 100%;
+            max-width: 400px;
+            height: 100px;
+        }
     </style>
 </head>
 <body>
+    <h1>🎯 Prediktor Spaceman</h1>
+    <p>Masukkan hasil crash sebelumnya (pisahkan dengan koma):</p>
+    <textarea id="inputData" placeholder="Contoh: 1.2, 1.5, 2.3, 1.1, 5.0"></textarea>
+    <br>
+    <button onclick="prediksi()">🔮 Prediksi</button>
 
-    <div class="control-box" id="controlPanel">
-        <h3>Hubungkan ke Layar</h3>
-        <input type="text" id="target-id" placeholder="Masukkan ID Web 1 Disini">
-        <button id="connect-btn">Tampilkan ke TV</button>
-    </div>
+    <div class="output" id="hasilPrediksi"></div>
 
-    <video id="remote-video" autoplay playsinline></video>
-
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
-        const peer = new Peer();
+        function prediksi() {
+            const input = document.getElementById("inputData").value;
+            const data = input.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
 
-        document.getElementById('connect-btn').addEventListener('click', () => {
-            const targetId = document.getElementById('target-id').value.trim();
-            if (!targetId) {
-                alert('Masukkan ID Web 1 terlebih dahulu!');
+            if (data.length < 3) {
+                document.getElementById("hasilPrediksi").innerText = "Minimal 3 data diperlukan untuk prediksi.";
                 return;
             }
 
-            // Hubungkan ke Web 1 dengan kosongkan stream awal, lalu terima stream masuk
-            const call = peer.call(targetId, new MediaStream());
+            const rataRata = data.reduce((a, b) => a + b) / data.length;
+            const prediksi = (rataRata + data[data.length - 1]) / 2;
 
-            call.on('stream', (remoteStream) => {
-                const videoElement = document.getElementById('remote-video');
-                videoElement.srcObject = remoteStream;
-                
-                // Sembunyikan kotak input agar tampilan bersih seperti 
-                document.getElementById('controlPanel').style.display = 'none';
-            });
+            let rekomendasi = "";
 
-            call.on('error', (err) => {
-                console.err(err);
-                alert('Gagal terhubung ke perangkat pengirim.');
-            });
-        });
+            if (prediksi > 2.0) {
+                rekomendasi = "🚀 Potensi Terbang Tinggi - Pertimbangkan untuk..."; // Teks terpotong di gambar
+            } else if (prediksi > 1.5) {
+                rekomendasi = "⚖️ Stabil - Main aman dan tarik cepat.";
+            } else {
+                rekomendasi = "⚠️ Rawan Crash Cepat - Hati-hati.";
+            }
+
+            document.getElementById("hasilPrediksi").innerHTML = `
+                <strong>Prediksi Crash Selanjutnya:</strong> ${prediksi.toFixed(2)}x<br><br>
+                ${rekomendasi}
+            `;
+        }
     </script>
 </body>
 </html>
