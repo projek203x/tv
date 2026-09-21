@@ -2,191 +2,267 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Pencatat & Prediktor Spaceman</title>
+    <title>Spaceman Predictor - Simulasi</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: sans-serif;
-            background-color: #0d0d2b;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: radial-gradient(circle at top, #1a1a4d 0%, #0a0a1f 100%);
             color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
-            text-align: center;
         }
-        h1, h2 {
-            color: #00ffcc;
-        }
-        input, button, textarea {
-            padding: 10px;
-            margin: 5px 0;
-            font-size: 1em;
+        .container {
+            background: rgba(20, 20, 50, 0.85);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            border-radius: 20px;
+            padding: 30px 25px;
+            max-width: 500px;
             width: 100%;
-            max-width: 400px;
-            box-sizing: border-box;
-            border-radius: 6px;
-            border: none;
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.15);
+            backdrop-filter: blur(10px);
         }
-        input, textarea {
-            background-color: #1a1a3d;
+        h1 {
+            text-align: center;
+            font-size: 1.6em;
+            color: #00ffcc;
+            margin-bottom: 5px;
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 25px;
+        }
+        .clock {
+            text-align: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
             color: #fff;
+            text-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
         }
         button {
-            background-color: #00ffcc;
-            color: #0d0d2b;
+            flex: 1;
+            padding: 14px;
+            font-size: 1em;
             font-weight: bold;
+            border: none;
+            border-radius: 10px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s;
+            letter-spacing: 1px;
         }
-        button:hover {
-            background-color: #00ccaa;
+        #btnStart {
+            background: linear-gradient(135deg, #00ffcc, #00aa88);
+            color: #0a0a1f;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
         }
-        button.danger {
-            background-color: #ff4d4d;
+        #btnStart:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 255, 204, 0.8); }
+        #btnStart:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        #btnStop {
+            background: linear-gradient(135deg, #ff4d6d, #cc0033);
             color: #fff;
+            box-shadow: 0 0 20px rgba(255, 77, 109, 0.4);
         }
-        button.danger:hover {
-            background-color: #cc0000;
+        #btnStop:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(255, 77, 109, 0.7); }
+        #btnStop:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .status {
+            text-align: center;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            color: #ffaa00;
+            min-height: 20px;
         }
-        .output {
-            margin-top: 20px;
-            font-size: 1.2em;
+        .status.live {
             color: #00ffcc;
-            padding: 10px;
-            background-color: #1a1a3d;
-            border-radius: 6px;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
+            animation: pulse 1s infinite;
         }
-        .riwayat-box {
-            max-width: 400px;
-            margin: 10px auto;
-            background-color: #1a1a3d;
-            border-radius: 6px;
-            padding: 10px;
-            min-height: 40px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            justify-content: center;
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
-        .riwayat-item {
-            background-color: #00ffcc;
-            color: #0d0d2b;
-            padding: 4px 10px;
+
+        .log-box {
+            background: #0a0a1f;
             border-radius: 12px;
-            font-weight: bold;
+            padding: 15px;
+            height: 350px;
+            overflow-y: auto;
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+        }
+        .log-box::-webkit-scrollbar { width: 6px; }
+        .log-box::-webkit-scrollbar-thumb { background: #00ffcc; border-radius: 3px; }
+
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            background: rgba(0, 255, 204, 0.05);
+            border-left: 3px solid #00ffcc;
+            animation: slideIn 0.4s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .log-time {
+            color: #aaa;
             font-size: 0.9em;
         }
-        .statistik {
-            font-size: 0.95em;
-            color: #aaa;
-            margin-top: 8px;
+        .log-pred {
+            font-weight: bold;
+            color: #00ffcc;
         }
+        .log-pred.down {
+            color: #ff4d6d;
+        }
+        .log-arrow {
+            margin-left: 8px;
+        }
+
+        .warning {
+            margin-top: 15px;
+            font-size: 0.75em;
+            text-align: center;
+            color: #666;
+            line-height: 1.5;
+        }
+        .warning strong { color: #ff4d6d; }
     </style>
 </head>
 <body>
-    <h1>🎯 Pencatat & Prediktor Spaceman</h1>
+    <div class="container">
+        <h1>🚀 SPACEMAN PREDICTOR</h1>
+        <p class="subtitle">Simulasi Tampilan Prediksi</p>
 
-    <h2>📝 Catat Hasil Crash</h2>
-    <input type="number" id="inputCrash" placeholder="Contoh: 1.25" step="0.01">
-    <button onclick="tambahCrash()">➕ Tambah ke Riwayat</button>
+        <div class="clock" id="clock">--:--:--</div>
 
-    <h2>📊 Riwayat Crash</h2>
-    <div class="riwayat-box" id="riwayatBox">
-        <span style="color:#666;">Belum ada data...</span>
+        <div class="buttons">
+            <button id="btnStart" onclick="startPredict()">▶ START</button>
+            <button id="btnStop" onclick="stopPredict()" disabled>■ STOP</button>
+        </div>
+
+        <div class="status" id="status">Tekan START untuk memulai</div>
+
+        <div class="log-box" id="logBox">
+            <div style="color:#444; text-align:center; margin-top: 130px;">
+                Belum ada prediksi...<br>
+                <span style="font-size:0.8em;">Tekan START untuk mulai</span>
+            </div>
+        </div>
+
+        <p class="warning">
+            ⚠️ <strong>PERINGATAN:</strong> Angka pada halaman ini <strong>ACAK (random)</strong>.<br>
+            Bukan prediksi asli. Tidak ada tools yang bisa memprediksi Spaceman.<br>
+            Hanya untuk simulasi tampilan.
+        </p>
     </div>
-    <div class="statistik" id="statistik"></div>
-
-    <button onclick="kirimKePrediksi()">🔮 Kirim ke Prediktor</button>
-    <button class="danger" onclick="hapusRiwayat()">🗑️ Hapus Riwayat</button>
-
-    <h2>🔮 Hasil Prediksi</h2>
-    <div class="output" id="hasilPrediksi">Menunggu data...</div>
 
     <script>
-        // Ambil riwayat dari localStorage
-        let riwayat = JSON.parse(localStorage.getItem("riwayatCrash")) || [];
+        let intervalId = null;
+        let clockId = null;
 
-        // Render riwayat saat halaman dibuka
-        renderRiwayat();
-
-        function tambahCrash() {
-            const input = document.getElementById("inputCrash");
-            const nilai = parseFloat(input.value);
-
-            if (isNaN(nilai) || nilai <= 0) {
-                alert("Masukkan angka valid (contoh: 1.25)");
-                return;
-            }
-
-            riwayat.push(nilai);
-            localStorage.setItem("riwayatCrash", JSON.stringify(riwayat));
-            input.value = "";
-            input.focus();
-            renderRiwayat();
+        // Update jam real-time
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${h}:${m}:${s}`;
         }
 
-        function renderRiwayat() {
-            const box = document.getElementById("riwayatBox");
-            const stat = document.getElementById("statistik");
-
-            if (riwayat.length === 0) {
-                box.innerHTML = '<span style="color:#666;">Belum ada data...</span>';
-                stat.innerText = "";
-                return;
-            }
-
-            box.innerHTML = riwayat
-                .map((v, i) => `<span class="riwayat-item">#${i + 1}: ${v.toFixed(2)}x</span>`)
-                .join("");
-
-            const rata = riwayat.reduce((a, b) => a + b, 0) / riwayat.length;
-            const max = Math.max(...riwayat);
-            const min = Math.min(...riwayat);
-
-            stat.innerText = `Total: ${riwayat.length} | Rata-rata: ${rata.toFixed(2)}x | Tertinggi: ${max.toFixed(2)}x | Terendah: ${min.toFixed(2)}x`;
+        // Generate angka acak (SIMULASI saja, bukan prediksi asli)
+        function generatePrediction() {
+            // Range 1.00 - 5.00
+            const multiplier = (Math.random() * 4 + 1).toFixed(2);
+            // Random UP atau DOWN
+            const isUp = Math.random() > 0.4;
+            const direction = isUp ? 'UP' : 'DOWN';
+            return { multiplier, direction };
         }
 
-        function kirimKePrediksi() {
-            if (riwayat.length < 3) {
-                document.getElementById("hasilPrediksi").innerText = "Minimal 3 data diperlukan untuk prediksi.";
-                return;
+        function formatTime(date) {
+            const h = String(date.getHours()).padStart(2, '0');
+            const m = String(date.getMinutes()).padStart(2, '0');
+            const s = String(date.getSeconds()).padStart(2, '0');
+            return `${h}.${m}.${s}`;
+        }
+
+        function addLog(time, multiplier, direction) {
+            const logBox = document.getElementById('logBox');
+
+            // Hapus placeholder kalau ada
+            if (logBox.querySelector('div[style*="text-align:center"]')) {
+                logBox.innerHTML = '';
             }
 
-            const data = riwayat;
-            const rataRata = data.reduce((a, b) => a + b) / data.length;
-            const prediksi = (rataRata + data[data.length - 1]) / 2;
-
-            let rekomendasi = "";
-            if (prediksi > 2.0) {
-                rekomendasi = "🚀 Potensi Terbang Tinggi - Pertimbangkan untuk main.";
-            } else if (prediksi > 1.5) {
-                rekomendasi = "⚖️ Stabil - Main aman dan tarik cepat.";
-            } else {
-                rekomendasi = "⚠️ Rawan Crash Cepat - Hati-hati.";
-            }
-
-            document.getElementById("hasilPrediksi").innerHTML = `
-                <strong>Prediksi Crash Selanjutnya:</strong> ${prediksi.toFixed(2)}x<br><br>
-                ${rekomendasi}
-                <div style="font-size:0.75em;color:#888;margin-top:10px;">
-                    *Hasil ini hanya estimasi statistik, bukan jaminan.
-                </div>
+            const item = document.createElement('div');
+            item.className = 'log-item';
+            const isUp = direction === 'UP';
+            item.innerHTML = `
+                <span class="log-time">${time}</span>
+                <span class="log-pred ${isUp ? '' : 'down'}">
+                    ${multiplier}x <span class="log-arrow">${isUp ? '📈 UP' : '📉 DOWN'}</span>
+                </span>
             `;
+            logBox.appendChild(item);
+            logBox.scrollTop = logBox.scrollHeight;
         }
 
-        function hapusRiwayat() {
-            if (!confirm("Yakin ingin menghapus semua riwayat?")) return;
-            riwayat = [];
-            localStorage.removeItem("riwayatCrash");
-            renderRiwayat();
-            document.getElementById("hasilPrediksi").innerText = "Menunggu data...";
+        function startPredict() {
+            document.getElementById('btnStart').disabled = true;
+            document.getElementById('btnStop').disabled = false;
+            const status = document.getElementById('status');
+            status.textContent = '🔴 LIVE - Memprediksi setiap detik...';
+            status.classList.add('live');
+
+            // Update jam
+            clockId = setInterval(updateClock, 1000);
+            updateClock();
+
+            // Generate prediksi tiap detik (SIMULASI)
+            intervalId = setInterval(() => {
+                const now = new Date();
+                const timeStr = formatTime(now);
+                const { multiplier, direction } = generatePrediction();
+                addLog(timeStr, multiplier, direction);
+            }, 1000);
+
+            // Langsung tampilkan 1 prediksi pertama
+            const now = new Date();
+            const { multiplier, direction } = generatePrediction();
+            addLog(formatTime(now), multiplier, direction);
         }
 
-        // Bonus: tekan Enter untuk langsung tambah
-        document.getElementById("inputCrash").addEventListener("keypress", function(e) {
-            if (e.key === "Enter") tambahCrash();
-        });
+        function stopPredict() {
+            clearInterval(intervalId);
+            clearInterval(clockId);
+            intervalId = null;
+            clockId = null;
+            document.getElementById('btnStart').disabled = false;
+            document.getElementById('btnStop').disabled = true;
+            const status = document.getElementById('status');
+            status.textContent = '⏹️ Dihentikan';
+            status.classList.remove('live');
+        }
     </script>
 </body>
 </html>
