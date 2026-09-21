@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Spaceman Predictor - Simulasi</title>
+    <title>Spaceman Predictor - Detik Akhir</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -49,6 +49,11 @@
             margin-bottom: 20px;
             letter-spacing: 2px;
         }
+        .clock .detik-akhir {
+            color: #00ffcc;
+            text-shadow: 0 0 25px rgba(0, 255, 204, 1);
+        }
+
         .buttons {
             display: flex;
             gap: 10px;
@@ -71,29 +76,21 @@
             box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
         }
         #btnStart:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 255, 204, 0.8); }
-        #btnStart:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-        #btnStop {
+        #btnStart:active { transform: scale(0.97); }
+
+        #btnClear {
             background: linear-gradient(135deg, #ff4d6d, #cc0033);
             color: #fff;
             box-shadow: 0 0 20px rgba(255, 77, 109, 0.4);
         }
-        #btnStop:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(255, 77, 109, 0.7); }
-        #btnStop:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        #btnClear:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(255, 77, 109, 0.7); }
 
         .status {
             text-align: center;
-            font-size: 0.9em;
+            font-size: 0.85em;
             margin-bottom: 15px;
             color: #ffaa00;
             min-height: 20px;
-        }
-        .status.live {
-            color: #00ffcc;
-            animation: pulse 1s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
         }
 
         .log-box {
@@ -112,31 +109,37 @@
         .log-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 10px;
-            margin-bottom: 6px;
+            align-items: center;
+            padding: 10px 12px;
+            margin-bottom: 8px;
             border-radius: 8px;
             background: rgba(0, 255, 204, 0.05);
             border-left: 3px solid #00ffcc;
-            animation: slideIn 0.4s ease-out;
+            animation: slideIn 0.5s ease-out;
+            font-size: 1.05em;
         }
         @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
+            from { opacity: 0; transform: translateX(-30px); }
             to { opacity: 1; transform: translateX(0); }
         }
         .log-time {
             color: #aaa;
             font-size: 0.9em;
+            font-family: 'Courier New', monospace;
+        }
+        .log-time .highlight {
+            color: #00ffcc;
+            font-weight: bold;
         }
         .log-pred {
             font-weight: bold;
             color: #00ffcc;
+            font-size: 1.05em;
         }
         .log-pred.down {
             color: #ff4d6d;
         }
-        .log-arrow {
-            margin-left: 8px;
-        }
+        .log-arrow { margin-left: 6px; }
 
         .warning {
             margin-top: 15px;
@@ -151,65 +154,61 @@
 <body>
     <div class="container">
         <h1>🚀 SPACEMAN PREDICTOR</h1>
-        <p class="subtitle">Simulasi Tampilan Prediksi</p>
+        <p class="subtitle">Simulasi Prediksi Detik Akhir</p>
 
-        <div class="clock" id="clock">--:--:--</div>
+        <div class="clock" id="clock">--:--.<span class="detik-akhir">--</span></div>
 
         <div class="buttons">
-            <button id="btnStart" onclick="startPredict()">▶ START</button>
-            <button id="btnStop" onclick="stopPredict()" disabled>■ STOP</button>
+            <button id="btnStart" onclick="generateOne()">🎯 PREDIKSI</button>
+            <button id="btnClear" onclick="clearLog()">🗑️ CLEAR</button>
         </div>
 
-        <div class="status" id="status">Tekan START untuk memulai</div>
+        <div class="status" id="status">Tekan PREDIKSI untuk memunculkan 1 hasil</div>
 
         <div class="log-box" id="logBox">
             <div style="color:#444; text-align:center; margin-top: 130px;">
                 Belum ada prediksi...<br>
-                <span style="font-size:0.8em;">Tekan START untuk mulai</span>
+                <span style="font-size:0.8em;">Tekan tombol PREDIKSI</span>
             </div>
         </div>
 
         <p class="warning">
             ⚠️ <strong>PERINGATAN:</strong> Angka pada halaman ini <strong>ACAK (random)</strong>.<br>
-            Bukan prediksi asli. Tidak ada tools yang bisa memprediksi Spaceman.<br>
-            Hanya untuk simulasi tampilan.
+            Bukan prediksi asli. Hanya untuk simulasi tampilan.
         </p>
     </div>
 
     <script>
-        let intervalId = null;
-        let clockId = null;
-
-        // Update jam real-time
+        // Update jam real-time (detik tetap update biar kelihatan hidup)
         function updateClock() {
             const now = new Date();
             const h = String(now.getHours()).padStart(2, '0');
             const m = String(now.getMinutes()).padStart(2, '0');
             const s = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+            document.getElementById('clock').innerHTML = `${h}:${m}.<span class="detik-akhir">${s}</span>`;
         }
+        setInterval(updateClock, 1000);
+        updateClock();
 
-        // Generate angka acak (SIMULASI saja, bukan prediksi asli)
+        // Generate angka acak (SIMULASI)
         function generatePrediction() {
-            // Range 1.00 - 5.00
             const multiplier = (Math.random() * 4 + 1).toFixed(2);
-            // Random UP atau DOWN
             const isUp = Math.random() > 0.4;
-            const direction = isUp ? 'UP' : 'DOWN';
-            return { multiplier, direction };
+            return { multiplier, direction: isUp ? 'UP' : 'DOWN' };
         }
 
+        // Format waktu: HH.MM.SS (detik akhir di-highlight)
         function formatTime(date) {
             const h = String(date.getHours()).padStart(2, '0');
             const m = String(date.getMinutes()).padStart(2, '0');
             const s = String(date.getSeconds()).padStart(2, '0');
-            return `${h}.${m}.${s}`;
+            return `${h}.${m}.<span class="highlight">${s}</span>`;
         }
 
-        function addLog(time, multiplier, direction) {
+        function addLog(timeHtml, multiplier, direction) {
             const logBox = document.getElementById('logBox');
 
-            // Hapus placeholder kalau ada
+            // Hapus placeholder
             if (logBox.querySelector('div[style*="text-align:center"]')) {
                 logBox.innerHTML = '';
             }
@@ -218,51 +217,47 @@
             item.className = 'log-item';
             const isUp = direction === 'UP';
             item.innerHTML = `
-                <span class="log-time">${time}</span>
+                <span class="log-time">${timeHtml}</span>
                 <span class="log-pred ${isUp ? '' : 'down'}">
-                    ${multiplier}x <span class="log-arrow">${isUp ? '📈 UP' : '📉 DOWN'}</span>
+                    ${multiplier}x <span class="log-arrow">${isUp ? 'UP 📈' : 'DOWN 📉'}</span>
                 </span>
             `;
             logBox.appendChild(item);
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        function startPredict() {
-            document.getElementById('btnStart').disabled = true;
-            document.getElementById('btnStop').disabled = false;
-            const status = document.getElementById('status');
-            status.textContent = '🔴 LIVE - Memprediksi setiap detik...';
-            status.classList.add('live');
-
-            // Update jam
-            clockId = setInterval(updateClock, 1000);
-            updateClock();
-
-            // Generate prediksi tiap detik (SIMULASI)
-            intervalId = setInterval(() => {
-                const now = new Date();
-                const timeStr = formatTime(now);
-                const { multiplier, direction } = generatePrediction();
-                addLog(timeStr, multiplier, direction);
-            }, 1000);
-
-            // Langsung tampilkan 1 prediksi pertama
+        function generateOne() {
             const now = new Date();
+            const timeHtml = formatTime(now);
             const { multiplier, direction } = generatePrediction();
-            addLog(formatTime(now), multiplier, direction);
+            addLog(timeHtml, multiplier, direction);
+
+            // Update status
+            const status = document.getElementById('status');
+            status.textContent = `✅ Prediksi terakhir: ${multiplier}x ${direction}`;
+            status.style.color = direction === 'UP' ? '#00ffcc' : '#ff4d6d';
         }
 
-        function stopPredict() {
-            clearInterval(intervalId);
-            clearInterval(clockId);
-            intervalId = null;
-            clockId = null;
-            document.getElementById('btnStart').disabled = false;
-            document.getElementById('btnStop').disabled = true;
+        function clearLog() {
+            const logBox = document.getElementById('logBox');
+            logBox.innerHTML = `
+                <div style="color:#444; text-align:center; margin-top: 130px;">
+                    Belum ada prediksi...<br>
+                    <span style="font-size:0.8em;">Tekan tombol PREDIKSI</span>
+                </div>
+            `;
             const status = document.getElementById('status');
-            status.textContent = '⏹️ Dihentikan';
-            status.classList.remove('live');
+            status.textContent = 'Tekan PREDIKSI untuk memunculkan 1 hasil';
+            status.style.color = '#ffaa00';
         }
+
+        // Bonus: tekan spasi = generate
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                generateOne();
+            }
+        });
     </script>
 </body>
 </html>
